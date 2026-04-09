@@ -1,0 +1,9 @@
+[watcher]
+tracked_addresses = [
+  "0x1111111111111111111111111111111111111111",
+  "0x2222222222222222222222222222222222222222"
+]
+min_trade_usd = 50.0
+confidence_threshold = 0.6
+rpc_url = "wss://polygon-bor-rpc.publicnode.com"
+poll_interval_ms = 400
