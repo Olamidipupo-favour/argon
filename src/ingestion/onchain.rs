@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use ethers::abi::RawLog;
-use ethers::contract::abigen;
-use ethers::providers::{Provider, Ws};
+use ethers::contract::{abigen, EthLogDecode};
+use ethers::providers::{Middleware, Provider, Ws};
 use ethers::types::{Filter, H256};
 use ethers::utils::keccak256;
 use futures_util::StreamExt;
@@ -77,10 +77,11 @@ fn decode_log(
             let maker = format!("{:#x}", event.maker);
             let taker = format!("{:#x}", event.taker);
 
-            let tracked_addr = if tracked.contains(&maker) {
-                Some(maker)
+            let maker_tracked = tracked.contains(&maker);
+            let tracked_addr = if maker_tracked {
+                Some(maker.clone())
             } else if tracked.contains(&taker) {
-                Some(taker)
+                Some(taker.clone())
             } else {
                 None
             };
@@ -114,7 +115,7 @@ fn decode_log(
                 maker_amount / 1_000_000.0
             };
 
-            let side = if tracked.contains(&maker) {
+            let side = if maker_tracked {
                 Side::Buy
             } else if maker_asset.is_zero() {
                 Side::Buy
@@ -123,7 +124,7 @@ fn decode_log(
             };
 
             let tx_hash = log.transaction_hash.map(|h| format!("{:#x}", h));
-            let order_hash = Some(format!("{:#x}", event.order_hash));
+            let order_hash = Some(format!("{:#x}", H256::from(event.order_hash)));
 
             Ok(Some(RawTradeEvent {
                 source: Source::OnChain,
@@ -175,7 +176,7 @@ fn decode_log(
             };
 
             let tx_hash = log.transaction_hash.map(|h| format!("{:#x}", h));
-            let order_hash = Some(format!("{:#x}", event.taker_order_hash));
+            let order_hash = Some(format!("{:#x}", H256::from(event.taker_order_hash)));
 
             Ok(Some(RawTradeEvent {
                 source: Source::OnChain,

@@ -6,7 +6,7 @@ pub fn compute_confidence(
     only_rest: bool,
     lag_detected: bool,
 ) -> f64 {
-    let mut score = 0.5;
+    let mut score: f64 = 0.5;
 
     if sources_count >= 2 {
         score += 0.2;

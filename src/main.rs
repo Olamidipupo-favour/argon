@@ -35,11 +35,12 @@ async fn main() -> Result<()> {
         client.clone(),
         Duration::from_millis(cfg.watcher.poll_interval_ms),
     ));
-    tokio::spawn(ingestion::onchain::run_onchain(
-        &cfg.watcher.rpc_url,
-        tracked.clone(),
-        sender.clone(),
-    ));
+    let rpc_url = cfg.watcher.rpc_url.clone();
+    let onchain_tracked = tracked.clone();
+    let onchain_sender = sender.clone();
+    tokio::spawn(async move {
+        let _ = ingestion::onchain::run_onchain(&rpc_url, onchain_tracked, onchain_sender).await;
+    });
 
     let engine = engine::SignalEngine::new(
         receiver,
